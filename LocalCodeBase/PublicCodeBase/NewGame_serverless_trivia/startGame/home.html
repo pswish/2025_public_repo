@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Serverless Trivia Game</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #333;
+    }
+    
+    .container {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      padding: 40px;
+      max-width: 500px;
+      width: 90%;
+      text-align: center;
+    }
+    
+    h1 {
+      color: #4a5568;
+      margin-bottom: 30px;
+      font-size: 2.2em;
+      font-weight: 300;
+    }
+    
+    input {
+      width: 100%;
+      padding: 15px;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 16px;
+      margin-bottom: 20px;
+      transition: border-color 0.3s;
+    }
+    
+    input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 10px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+    
+    button:active {
+      transform: translateY(0);
+    }
+    
+    #questionText {
+      font-size: 1.3em;
+      margin: 20px 0;
+      color: #2d3748;
+      line-height: 1.5;
+    }
+    
+    #result {
+      font-size: 1.2em;
+      font-weight: bold;
+      margin: 15px 0;
+      min-height: 30px;
+    }
+    
+    .correct {
+      color: #38a169;
+    }
+    
+    .wrong {
+      color: #e53e3e;
+    }
+    
+    #score {
+      font-size: 1.5em;
+      font-weight: bold;
+      color: #667eea;
+    }
+    
+    .score-container {
+      background: #f7fafc;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Serverless Trivia Game</h1>
+    <div id="start-game">
+      <input id="userId" placeholder="Enter your user ID" />
+      <button onclick="startGame()"> Start Game</button>
+      <p id="startMessage"></p>
+    </div>
+    <div id="game-play" style="display:none;">
+      <p id="questionText"></p>
+      <input id="answerInput" placeholder="Your answer" />
+      <button onclick="submitAnswer()">Submit Answer</button>
+      <p id="result"></p>
+      <div class="score-container">
+        <p>Score: <span id="score">0</span></p>
+      </div>
+      <button onclick="nextQuestion()">Next Question</button>
+    </div>
+  </div>
+  <script>
+    let sessionId = "";
+    let currentQuestionId = "";
+async function startGame() {
+      const userId = document.getElementById('userId').value;
+      const response = await fetch('https://6hgyiyc9i4.execute-api.us-west-2.amazonaws.com/prod/startgame?user_id=' + encodeURIComponent(userId))
+      const data = await response.json();
+      sessionId = data.session_id;
+      document.getElementById('startMessage').innerText = data.message;
+      document.getElementById('start-game').style.display = 'none';
+      document.getElementById('game-play').style.display = 'block';
+      nextQuestion();
+    }
+async function nextQuestion() {
+      const response = await fetch('https://6hgyiyc9i4.execute-api.us-west-2.amazonaws.com/prod/getquestion?session_id=' + sessionId)
+      const data = await response.json();
+      currentQuestionId = data.question_id;
+      document.getElementById('questionText').innerText = data.question;
+      document.getElementById('answerInput').value = '';
+      document.getElementById('result').innerText = '';
+    }
+async function submitAnswer() {
+      const answer = document.getElementById('answerInput').value;
+      const response = await fetch('https://6hgyiyc9i4.execute-api.us-west-2.amazonaws.com/prod/submitanswer', 
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session_id: sessionId,
+          question_id: currentQuestionId,
+          answer: answer
+        })
+      });
+      const data = await response.json();
+      const resultElement = document.getElementById('result');
+      if (data.correct) {
+        resultElement.innerText = "Correct!";
+        resultElement.className = 'correct';
+      } else {
+        resultElement.innerText = "Wrong!";
+        resultElement.className = 'wrong';
+      }
+      document.getElementById('score').innerText = data.score;
+    }
+  </script>
+</body>
+</html>

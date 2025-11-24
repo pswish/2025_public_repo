@@ -1,0 +1,7 @@
+{
+  "q1": {"question": "What is the capital of France?", "answer": "Paris"},
+  "q2": {"question": "What is 2 + 2?", "answer": "4"},
+  "q3": {"question": "What is the largest planet in our solar system?", "answer": "Jupiter"},
+  "q4": {"question": "Who wrote 'To be, or not to be'?", "answer": "William Shakespeare"},
+  "q5": {"question": "What is the boiling point of water?", "answer": "100C"}
+}
